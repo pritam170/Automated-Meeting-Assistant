@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraMeet - Automated Local Meeting Assistant</title>
+    <!-- Google Fonts: Outfit for titles, Inter for body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background glowing orbs for premium visual aesthetic -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <div class="app-container">
+        <!-- Main Navbar -->
+        <header class="navbar">
+            <div class="logo">
+                <i class="fa-solid fa-wand-magic-sparkles logo-icon"></i>
+                <span class="logo-text">AuraMeet</span>
+                <span class="logo-badge">Local Assistant</span>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="tab-dashboard" id="btn-tab-dashboard">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </button>
+                <button class="nav-tab" data-tab="tab-upload" id="btn-tab-upload">
+                    <i class="fa-solid fa-microphone"></i> Transcribe Audio
+                </button>
+                <button class="nav-tab" data-tab="tab-team" id="btn-tab-team">
+                    <i class="fa-solid fa-users"></i> Team Directory
+                </button>
+                <button class="nav-tab" data-tab="tab-settings" id="btn-tab-settings">
+                    <i class="fa-solid fa-gears"></i> SMTP Settings
+                </button>
+            </nav>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- TAB: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-pane active">
+                <div class="welcome-banner">
+                    <h1>Meeting Assistant</h1>
+                    <p>Paste a transcript or write a quick summary manually to extract action items, set deadlines, and email tasks instantly.</p>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Paste Transcript Section -->
+                    <div class="glass-card parse-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-keyboard icon-purple"></i>
+                            <h2>Paste Meeting Transcript</h2>
+                        </div>
+                        <div class="card-body">
+                            <label for="pasted-transcript">Type or paste dialogue/text below (e.g. "Bob: I will update the server by Friday")</label>
+                            <textarea id="pasted-transcript" placeholder="Alice: Welcome team. Let's list tasks.&#10;Bob: I will update the database server by Friday.&#10;Charlie: I need to review frontend layout mockups tomorrow.&#10;Dave: I will write API documentation next week."></textarea>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="summary-sentences">Summary Length (Sentences):</label>
+                                    <input type="number" id="summary-sentences" min="1" max="10" value="4">
+                                </div>
+                                <button id="btn-analyze-text" class="btn btn-primary btn-glow">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Run Analysis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- App Quick Stats / Quick Access -->
+                    <div class="glass-card stats-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-circle-info icon-blue"></i>
+                            <h2>System Overview</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="status-list">
+                                <div class="status-item">
+                                    <span class="status-label">Local LLM Summarizer:</span>
+                                    <span class="status-value badge badge-green"><i class="fa-solid fa-check-circle"></i> Ready (Extractive)</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">Whisper Audio Transcription:</span>
+                                    <span class="status-value badge badge-blue" id="whisper-status"><i class="fa-solid fa-info-circle"></i> Ready (Local CPU)</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">SMTP Email Service:</span>
+                                    <span class="status-value badge badge-orange" id="smtp-status"><i class="fa-solid fa-triangle-exclamation"></i> Not Configured</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">Saved Team Members:</span>
+                                    <span class="status-value" id="stats-team-count">0 Members</span>
+                                </div>
+                            </div>
+                            <div class="quick-tips">
+                                <h3><i class="fa-solid fa-lightbulb text-gold"></i> Pro-Tip</h3>
+                                <p>To automatically assign action items, make sure to prefix lines with the speaker's name in the transcript (e.g. <strong>Bob: I will...</strong>) and add Bob's email to the <strong>Team Directory</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Results Section (Hidden until analyzed) -->
+                <div id="analysis-results-section" class="analysis-results hidden">
+                    <div class="results-banner">
+                        <h2><i class="fa-solid fa-circle-check text-green"></i> Analysis Complete</h2>
+                        <p>We found action items and summarized the dialogue. You can edit the results below before sending tasks.</p>
+                    </div>
+                    
+                    <div class="results-grid">
+                        <!-- Left pane: Summary -->
+                        <div class="glass-card summary-result-card">
+                            <div class="card-header">
+                                <i class="fa-solid fa-align-left icon-purple"></i>
+                                <h2>Meeting Summary</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="summary-meta">
+                                    <label for="meeting-title">Meeting Title:</label>
+                                    <input type="text" id="meeting-title" value="Weekly Sync Meeting">
+                                </div>
+                                <label for="meeting-summary-text">Edit Summary:</label>
+                                <textarea id="meeting-summary-text" class="summary-textarea"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Right pane: Action Items Board -->
+                        <div class="glass-card tasks-result-card">
+                            <div class="card-header header-with-actions">
+                                <div class="header-title">
+                                    <i class="fa-solid fa-list-check icon-blue"></i>
+                                    <h2>Action Items Board</h2>
+                                </div>
+                                <button id="btn-add-task" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-plus"></i> Add Item
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-container">
+                                    <table id="tasks-table" class="interactive-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Task Description</th>
+                                                <th>Assignee</th>
+                                                <th>Due Date</th>
+                                                <th class="text-center">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tasks-tbody">
+                                            <!-- Injected dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="email-dispatch-panel">
+                                    <button id="btn-email-all" class="btn btn-primary btn-glow btn-lg">
+                                        <i class="fa-solid fa-paper-plane"></i> Dispatch Email Notifications
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: TRANSCRIBE AUDIO -->
+            <section id="tab-upload" class="tab-pane">
+                <div class="welcome-banner">
+                    <h1>Local Audio Transcription</h1>
+                    <p>Upload a recorded audio meeting file (MP3, WAV, M4A). The server runs a local Whisper model (CPU) to transcribe it. No external cloud dependencies.</p>
+                </div>
+
+                <div class="glass-card upload-container">
+                    <div class="card-body text-center">
+                        <div class="drop-zone" id="audio-drop-zone">
+                            <div class="drop-zone-content">
+                                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                                <h3>Drag & Drop meeting audio here</h3>
+                                <p>Supports .mp3, .wav, .m4a (Max 50MB)</p>
+                                <span class="or-separator">OR</span>
+                                <label for="audio-file-input" class="btn btn-secondary cursor-pointer">Browse Files</label>
+                                <input type="file" id="audio-file-input" accept="audio/*" class="hidden">
+                            </div>
+                        </div>
+
+                        <!-- Progress Section -->
+                        <div id="upload-progress-container" class="progress-container hidden">
+                            <div class="progress-details">
+                                <span id="progress-filename">meeting_recording.mp3</span>
+                                <span id="progress-percentage">Processing...</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="progress-bar-fill"></div>
+                            </div>
+                            <p class="progress-notice"><i class="fa-solid fa-circle-notch fa-spin"></i> Local CPU transcription can take 1-3 minutes depending on model and audio length...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: TEAM DIRECTORY -->
+            <section id="tab-team" class="tab-pane">
+                <div class="welcome-banner">
+                    <h1>Team & Contact Directory</h1>
+                    <p>Map team member names to their emails. When AuraMeet extracts action items, it matches tasks to these email addresses and sends them personalized summaries.</p>
+                </div>
+
+                <div class="glass-card team-card">
+                    <div class="card-header header-with-actions">
+                        <div class="header-title">
+                            <i class="fa-solid fa-users icon-purple"></i>
+                            <h2>Saved Team Members</h2>
+                        </div>
+                        <button id="btn-save-team" class="btn btn-primary">
+                            <i class="fa-solid fa-floppy-disk"></i> Save Directory
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table id="team-table" class="interactive-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email Address</th>
+                                        <th>Role / Title</th>
+                                        <th class="text-center" style="width: 100px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="team-tbody">
+                                    <!-- Injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <button id="btn-add-team-member" class="btn btn-secondary mt-15">
+                            <i class="fa-solid fa-plus"></i> Add Team Member
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: SMTP SETTINGS -->
+            <section id="tab-settings" class="tab-pane">
+                <div class="welcome-banner">
+                    <h1>SMTP Server Settings</h1>
+                    <p>Configure your SMTP credentials to send email notifications. You can use standard services like Gmail App Passwords, Office365, Mailtrap (for testing), or custom SMTP relays.</p>
+                </div>
+
+                <div class="settings-grid">
+                    <!-- SMTP Configurations -->
+                    <div class="glass-card settings-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-envelope-open-text icon-blue"></i>
+                            <h2>Mail Server Credentials</h2>
+                        </div>
+                        <div class="card-body">
+                            <form id="smtp-form" class="settings-form">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="smtp-host">SMTP Host Server</label>
+                                        <input type="text" id="smtp-host" placeholder="smtp.gmail.com" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="smtp-port">SMTP Port</label>
+                                        <input type="number" id="smtp-port" placeholder="587" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="smtp-username">SMTP Username / Email</label>
+                                        <input type="email" id="smtp-username" placeholder="your_email@gmail.com" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="smtp-password">SMTP Password / App Password</label>
+                                        <input type="password" id="smtp-password" placeholder="Your password or app password" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="smtp-sender-email">Custom From Address (Optional)</label>
+                                        <input type="email" id="smtp-sender-email" placeholder="leave blank to use Username">
+                                    </div>
+                                    <div class="form-group flex-row-align">
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" id="smtp-use-ssl">
+                                            <span class="checkmark"></span>
+                                            Use SSL (usually port 465)
+                                        </label>
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" id="smtp-use-tls" checked>
+                                            <span class="checkmark"></span>
+                                            Use TLS (usually port 587)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions-row">
+                                    <button type="button" id="btn-test-smtp" class="btn btn-secondary">
+                                        <i class="fa-solid fa-vial"></i> Test Connection
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa-solid fa-floppy-disk"></i> Save SMTP Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Whisper and general settings -->
+                    <div class="glass-card model-config-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-brain icon-purple"></i>
+                            <h2>Transcription Engine</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="whisper-model-select">Local Whisper Model Size</label>
+                                <select id="whisper-model-select" class="form-select">
+                                    <option value="tiny">Tiny (~75 MB) - Extremely Fast, Low CPU</option>
+                                    <option value="base">Base (~145 MB) - Balanced Speed & Accuracy</option>
+                                    <option value="small">Small (~460 MB) - High Accuracy, Slower</option>
+                                </select>
+                                <p class="help-text">The selected model size will be downloaded automatically by the Python backend on its first usage.</p>
+                            </div>
+                            <div class="connection-status-panel">
+                                <h3>SMTP Server Guide</h3>
+                                <ul class="guide-list">
+                                    <li><strong>Gmail</strong>: Go to Google Account > Security > 2-Step Verification > App Passwords. Generate an app password to paste in the password field. Host: `smtp.gmail.com`, Port: `587`.</li>
+                                    <li><strong>Mailtrap</strong>: Perfect for testing! Set up a free developer mailbox, and copy the credentials here to test emails safely.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast Element -->
+    <div id="toast" class="toast hidden">
+        <div class="toast-content">
+            <i id="toast-icon" class="fa-solid fa-circle-info"></i>
+            <span id="toast-message">Notification message here</span>
+        </div>
+    </div>
+
+    <!-- JS Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>

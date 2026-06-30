@@ -1,0 +1,12 @@
+{
+    "smtp": {
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "username": "",
+        "password": "",
+        "use_ssl": false,
+        "use_tls": true,
+        "sender_email": ""
+    },
+    "whisper_model": "tiny"
+}
